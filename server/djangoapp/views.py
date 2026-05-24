@@ -15,6 +15,11 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from .models import CarModel
 from .populate import initiate
+from .restapis import (
+    analyze_review_sentiments,
+    get_request,
+    post_review,
+)
 
 
 # Get an instance of a logger
@@ -160,17 +165,70 @@ def get_cars(request):
 
 # # Update the `get_dealerships` view to render the index page with
 # a list of dealerships
-# def get_dealerships(request):
-# ...
+def get_dealerships(request, state="All"):
+    endpoint = "fetchDealers"
+    if state.lower() != "all":
+        endpoint = f"fetchDealers/{state}"
+
+    dealers = get_request(endpoint)
+    if not isinstance(dealers, list):
+        dealers = []
+    return JsonResponse({"status": 200, "dealers": dealers})
 
 # Create a `get_dealer_reviews` view to render the reviews of a dealer
-# def get_dealer_reviews(request,dealer_id):
-# ...
+def get_dealer_reviews(request, dealer_id):
+    reviews = get_request(f"fetchReviews/dealer/{dealer_id}")
+    if not isinstance(reviews, list):
+        reviews = []
+
+    for review in reviews:
+        if isinstance(review, dict):
+            review["sentiment"] = analyze_review_sentiments(
+                review.get("review", "")
+            )
+    return JsonResponse({"status": 200, "reviews": reviews})
 
 # Create a `get_dealer_details` view to render the dealer details
-# def get_dealer_details(request, dealer_id):
-# ...
+def get_dealer_details(request, dealer_id):
+    dealer = get_request(f"fetchDealer/{dealer_id}")
+    if isinstance(dealer, dict):
+        dealer = [dealer]
+    if not isinstance(dealer, list):
+        dealer = []
+    return JsonResponse({"status": 200, "dealer": dealer})
 
 # Create a `add_review` view to submit a review
-# def add_review(request):
-# ...
+@csrf_exempt
+def add_review(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            "status": 403,
+            "message": "Login required to add a review"
+        }, status=403)
+
+    if request.method != "POST":
+        return JsonResponse({
+            "status": 405,
+            "message": "POST request required"
+        }, status=405)
+
+    data = _json_body(request)
+    if data is None:
+        return JsonResponse({
+            "status": 400,
+            "message": "Invalid JSON body"
+        }, status=400)
+
+    user_name = request.user.get_full_name() or request.user.username
+    if not data.get("name"):
+        data["name"] = user_name
+    data["user_id"] = request.user.id
+
+    saved_review = post_review(data)
+    if not saved_review:
+        return JsonResponse({
+            "status": 500,
+            "message": "Error posting review"
+        }, status=500)
+
+    return JsonResponse({"status": 200, "review": saved_review})
