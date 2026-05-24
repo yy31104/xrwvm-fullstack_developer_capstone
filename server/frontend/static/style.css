@@ -3,14 +3,21 @@ img{
   align-self: center;
 }
 
+body{
+  background-color: #f7fbfc;
+}
+
 .card{
-  border: rgb(103, 102, 105) 3px solid;
+  border: rgba(97, 64, 128, 0.18) 1px solid;
+  border-radius: 8px;
   display: flex;  
   flex-direction: column;
   margin-left:5%;
   margin-right:5%;
   margin-top: 1%;
   margin-bottom: 1%;
+  box-shadow: 0 8px 24px rgba(33, 37, 41, 0.10);
+  background-color: white;
 }
 
 .row{
@@ -39,11 +46,12 @@ img{
   text-align: center;
   margin:20px;
   padding:5px;
+  border-radius: 4px;
 }
 
 .homepage_links{
   color:  rgb(97, 64, 128);
-  padding: 25%;
+  padding: 0 12px;
   font-size: larger;
   }
 

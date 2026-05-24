@@ -68,9 +68,9 @@ return(
       <Header/>
       <div className="container mt-4">
         {dealerLoading ? (
-          <div>Loading dealer...</div>
+          <div className="alert alert-info dealer_state">Loading dealer...</div>
         ) : (
-          <div style={{marginTop:"10px"}}>
+          <div className="dealer_header">
             <h1 style={{color:"grey"}}>
               {dealer.full_name}
               {isLoggedIn ? (
@@ -82,8 +82,8 @@ return(
         )}
         <div className="reviews_panel">
         {reviewsLoading ? (
-          <span>Loading Reviews....</span>
-        ): reviews.length === 0 ? <div>No reviews yet!</div> :
+          <div className="alert alert-info dealer_state">Loading reviews...</div>
+        ): reviews.length === 0 ? <div className="alert alert-light border dealer_state">No reviews yet!</div> :
         reviews.map(review => (
           <div className='review_panel' key={review.id}>
             <img src={senti_icon(review.sentiment)} className="emotion_icon" alt='Sentiment'/>
