@@ -18,16 +18,20 @@ const Reviews = require('./review');
 
 const Dealerships = require('./dealership');
 
-try {
-  Reviews.deleteMany({}).then(()=>{
-    Reviews.insertMany(reviews_data['reviews']);
-  });
-  Dealerships.deleteMany({}).then(()=>{
-    Dealerships.insertMany(dealerships_data['dealerships']);
-  });
-  
-} catch (error) {
-  res.status(500).json({ error: 'Error fetching documents' });
+Reviews.deleteMany({}).then(()=>{
+  return Reviews.insertMany(reviews_data['reviews']);
+}).catch((error) => {
+  console.error('Error seeding reviews', error);
+});
+
+Dealerships.deleteMany({}).then(()=>{
+  return Dealerships.insertMany(dealerships_data['dealerships']);
+}).catch((error) => {
+  console.error('Error seeding dealerships', error);
+});
+
+const exactMatch = (value) => {
+  return new RegExp(`^${value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
 }
 
 
@@ -58,17 +62,38 @@ app.get('/fetchReviews/dealer/:id', async (req, res) => {
 
 // Express route to fetch all dealerships
 app.get('/fetchDealers', async (req, res) => {
-//Write your code here
+  try {
+    const documents = await Dealerships.find();
+    res.json(documents);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching documents' });
+  }
 });
 
 // Express route to fetch Dealers by a particular state
 app.get('/fetchDealers/:state', async (req, res) => {
-//Write your code here
+  try {
+    const state = exactMatch(req.params.state);
+    const documents = await Dealerships.find({
+      $or: [
+        {state: state},
+        {st: state}
+      ]
+    });
+    res.json(documents);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching documents' });
+  }
 });
 
 // Express route to fetch dealer by a particular id
 app.get('/fetchDealer/:id', async (req, res) => {
-//Write your code here
+  try {
+    const documents = await Dealerships.find({id: req.params.id});
+    res.json(documents);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching documents' });
+  }
 });
 
 //Express route to insert review
