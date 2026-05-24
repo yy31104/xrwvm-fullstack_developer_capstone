@@ -34,23 +34,9 @@
   justify-self: center;
 }
 
-.input_field{
-  height:40px;
-  width:200px; 
-  font-size: medium;
-  margin:.5cm;
-}
-
-
 .action_button{
   cursor: pointer;
-  font-size: large;
-  color: rgb(97, 64, 128);
-  border-radius: 10px;
-  height:40px;
-  padding-left:.5cm;
-  padding-right: .5cm;
-  margin: .5cm;
+  min-width: 110px;
 }
 
 .submit:hover {
@@ -71,16 +57,40 @@
   align-self:flex-end;
 }
 
+.auth_page {
+  min-height: calc(100vh - 1in);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: #f7fbfc;
+}
+
+.auth_card {
+  width: min(100%, 440px);
+  border: 1px solid rgba(97, 64, 128, 0.18);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(33, 37, 41, 0.12);
+}
+
 .login_panel {
   display: flex;
   flex-direction: column;
-  margin:auto;
-  margin: 0 auto;
-  width: 50%; 
-  padding: 20px;
+  width: 100%;
+  padding: 2rem;
   flex: 1;
   justify-content:center;
-  align-items: center;
-  vertical-align: middle;
-  
+}
+
+.auth_title {
+  color: rgb(97, 64, 128);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.auth_actions {
+  display: flex;
+  gap: .75rem;
+  justify-content: center;
+  margin-top: .5rem;
 }

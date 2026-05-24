@@ -41,34 +41,36 @@ const Register = () => {
   return (
     <div>
       <Header/>
-      <form className="register_container" onSubmit={register}>
-        <h1 className="header">Register</h1>
+      <div className="register_page">
+      <form className="card register_container" onSubmit={register}>
+        <h1 className="register_header">Register</h1>
         <div className="inputs">
-          <div className="input">
-            <span className="input_field">Username</span>
-            <input type="text" name="username" placeholder="Username" className="input_field" value={userName} onChange={(e) => setUserName(e.target.value)} required/>
+          <div className="mb-3 w-100">
+            <label className="form-label" htmlFor="register_username">Username</label>
+            <input type="text" id="register_username" name="username" placeholder="Username" className="form-control" value={userName} onChange={(e) => setUserName(e.target.value)} required/>
           </div>
-          <div className="input">
-            <span className="input_field">First Name</span>
-            <input type="text" name="firstName" placeholder="First Name" className="input_field" value={firstName} onChange={(e) => setFirstName(e.target.value)} required/>
+          <div className="mb-3 w-100">
+            <label className="form-label" htmlFor="register_first_name">First Name</label>
+            <input type="text" id="register_first_name" name="firstName" placeholder="First Name" className="form-control" value={firstName} onChange={(e) => setFirstName(e.target.value)} required/>
           </div>
-          <div className="input">
-            <span className="input_field">Last Name</span>
-            <input type="text" name="lastName" placeholder="Last Name" className="input_field" value={lastName} onChange={(e) => setLastName(e.target.value)} required/>
+          <div className="mb-3 w-100">
+            <label className="form-label" htmlFor="register_last_name">Last Name</label>
+            <input type="text" id="register_last_name" name="lastName" placeholder="Last Name" className="form-control" value={lastName} onChange={(e) => setLastName(e.target.value)} required/>
           </div>
-          <div className="input">
-            <span className="input_field">Email</span>
-            <input type="email" name="email" placeholder="Email" className="input_field" value={email} onChange={(e) => setEmail(e.target.value)} required/>
+          <div className="mb-3 w-100">
+            <label className="form-label" htmlFor="register_email">Email</label>
+            <input type="email" id="register_email" name="email" placeholder="Email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} required/>
           </div>
-          <div className="input">
-            <span className="input_field">Password</span>
-            <input type="password" name="password" placeholder="Password" className="input_field" value={password} onChange={(e) => setPassword(e.target.value)} required/>
+          <div className="mb-3 w-100">
+            <label className="form-label" htmlFor="register_password">Password</label>
+            <input type="password" id="register_password" name="password" placeholder="Password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} required/>
           </div>
         </div>
         <div className="submit_panel">
-          <input className="submit" type="submit" value="Register"/>
+          <input className="btn btn-primary submit" type="submit" value="Register"/>
         </div>
       </form>
+      </div>
     </div>
   );
 };
