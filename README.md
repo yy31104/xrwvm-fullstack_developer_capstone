@@ -1,81 +1,159 @@
 # Best Cars Dealership Review Platform
 
-Best Cars is a dealership review platform for customers who want to compare auto dealerships, read community feedback, and share purchase or service experiences. The project follows the IBM Full Stack Developer Capstone template and is being implemented incrementally so each submission artifact remains clear and grader-compatible.
+Best Cars is a full-stack dealership review platform built for the IBM Full Stack Developer Capstone. It lets customers browse dealerships, review dealer details, register or log in with Django session authentication, submit dealership reviews, and see sentiment analysis applied to review text.
 
-## Architecture Overview
+The project keeps the original course template structure while completing the major capstone modules across Django, React, Express, MongoDB, Docker, Kubernetes, and GitHub Actions.
 
-The application is organized as a Django backend with a React frontend scaffold and course-provided static pages:
+## Business Overview
 
-- `server/djangoproj`: Django project settings and top-level URL routing.
-- `server/djangoapp`: Django app views, URL routes, and future dealership/review endpoints.
-- `server/frontend/static`: Static HTML, CSS, and image assets used by the Django-rendered landing pages.
-- `server/frontend/src`: React application scaffold for login and future interactive views.
-- `server/database`: Course database resources retained from the template.
+Best Cars helps car shoppers make better dealership decisions before visiting a showroom. Customers can compare dealers by state, inspect dealer-specific reviews, and contribute their own purchase or service experiences. The platform is designed for a dealership group that wants a customer-facing review portal backed by reusable backend services.
 
-This bootstrap step focuses on making the Django-rendered home, about, and contact pages available while keeping future dealership and review functionality untouched.
+## Implemented Features
+
+- Static Django-rendered Home, About, and Contact pages.
+- Django session authentication for login, logout, and registration.
+- React pages for Register, Login, Dealers, Dealer detail, and Post Review.
+- Dealer list filtering by state.
+- Dealer detail pages with review display.
+- Authenticated review submission flow.
+- Express and MongoDB service for dealer and review data.
+- Django proxy services that connect the React-facing Django app to the Express/MongoDB backend.
+- CarMake and CarModel Django models with useful Django admin registration.
+- Seed data support for car makes and models.
+- Sentiment analyzer integration for dealership reviews, with a neutral fallback when the analyzer service is unavailable.
+- Dockerfile and entrypoint for the Django application container.
+- Kubernetes deployment manifest for the dealership app.
+- GitHub Actions CI workflow with Backend, Frontend, and Docker image jobs.
+- Submission evidence folder for screenshots, URLs, and grader artifacts.
+
+## Architecture Summary
+
+The application is split into several course-compatible services and folders:
+
+- `server/djangoproj` contains Django settings, WSGI setup, and top-level URL routing.
+- `server/djangoapp` contains Django models, admin setup, views, URL routes, proxy helpers, and seed data logic.
+- `server/frontend/static` contains the static Home, About, Contact, CSS, and image assets served by Django.
+- `server/frontend/src` contains the React application used for login, registration, dealer browsing, dealer details, and review submission.
+- `server/database` contains the Express API and MongoDB-backed dealer/review service.
+- `server/Dockerfile`, `server/entrypoint.sh`, and `server/deployment.yaml` provide container and Kubernetes deployment artifacts.
+- `.github/workflows/main.yml` runs CI checks for the Django backend, React frontend, and Docker image build.
+
+At runtime, Django serves the main web application and session-authenticated endpoints. React handles the dynamic dealership pages. Django proxy views call the Express service for dealer and review data, and the Express service reads and writes MongoDB collections. Review sentiment is requested from the sentiment analyzer service configured in `server/djangoapp/.env`.
 
 ## Tech Stack
 
 - Python and Django
-- Django authentication/session support
+- Django authentication and session middleware
 - SQLite for local Django development
-- React frontend scaffold
-- Bootstrap and course-provided CSS
-- Static image assets from the capstone template
+- React and Create React App
+- Bootstrap-based UI styling
+- Node.js and Express
+- MongoDB with Mongoose
+- Docker and Docker Compose
+- Kubernetes deployment YAML
+- Gunicorn for containerized Django serving
+- GitHub Actions for CI
 
-## Local Development
+## Local Run Instructions
 
-From the repository root:
+These commands assume a Windows PowerShell environment from the repository root.
 
-```powershell
-cd server
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-python manage.py check
-python manage.py migrate
-python manage.py runserver
-```
-
-Then open:
-
-- Home: `http://127.0.0.1:8000/`
-- About: `http://127.0.0.1:8000/about`
-- Contact: `http://127.0.0.1:8000/contact`
-- Login API: `http://127.0.0.1:8000/djangoapp/login`
-- Logout API: `http://127.0.0.1:8000/djangoapp/logout`
-
-The React scaffold can be developed separately from `server/frontend` when needed:
+Build the React frontend first so Django can serve the compiled app:
 
 ```powershell
 cd server/frontend
 npm install
-npm start
+npm run build
 ```
 
-## Current Implementation Status
+Run the Django application:
 
-Implemented in the current baseline:
+```powershell
+cd ..
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
 
-- Django can render the course static home page from `/`.
-- About and contact pages are complete enough for screenshot submission.
-- Static CSS and image assets are wired through Django settings.
-- Minimal login and logout API routes are available for smoke testing.
+Open the Django app at:
 
-Not implemented yet:
+- `http://127.0.0.1:8000/`
+- `http://127.0.0.1:8000/about`
+- `http://127.0.0.1:8000/contact`
+- `http://127.0.0.1:8000/login`
+- `http://127.0.0.1:8000/register`
+- `http://127.0.0.1:8000/dealers`
 
-- Dealer listing and dealer detail pages
-- Review listing and review submission
-- MongoDB/Cloudant-backed services
-- CarMake and CarModel models
-- Registration UI and endpoint
-- Docker, Kubernetes, and GitHub Actions deployment assets
+Run the Express and MongoDB service:
+
+```powershell
+cd server/database
+npm install
+docker build -t nodeapp .
+docker compose up -d
+```
+
+The Django proxy configuration expects these local service URLs in `server/djangoapp/.env`:
+
+- `backend_url=http://localhost:3030`
+- `sentiment_analyzer_url=http://localhost:5050`
+
+If the sentiment analyzer is not running, review pages should still load and use the neutral fallback.
+
+## Docker and Kubernetes Notes
+
+The Django container artifacts are located in `server/`:
+
+- `Dockerfile` installs Python dependencies, copies the Django server files, exposes port `8000`, and starts Gunicorn.
+- `entrypoint.sh` runs migrations and `collectstatic` before starting the container command.
+- `deployment.yaml` defines a Kubernetes Deployment and NodePort Service for the `dealership` app.
+
+Build the Django image from the repository root:
+
+```powershell
+docker build -t dealership ./server
+```
+
+Run it locally:
+
+```powershell
+docker run --rm -p 8001:8000 dealership
+```
+
+The Kubernetes manifest uses the placeholder image `us.icr.io/YOUR_NAMESPACE/dealership:latest`. Replace `YOUR_NAMESPACE` with the correct IBM Cloud Container Registry namespace before applying it to a cluster.
+
+The current `submission/deploymentURL` file points to `http://127.0.0.1:8002/`, so this repository documents container and Kubernetes readiness without claiming a public cloud deployment URL.
+
+## CI Notes
+
+The GitHub Actions workflow is defined at `.github/workflows/main.yml` and is named `CI`.
+
+It runs on pushes to `main`, pull requests targeting `main`, and manual `workflow_dispatch` triggers. The workflow includes:
+
+- Backend job: installs Python dependencies, runs focused flake8 syntax/undefined-name checks, runs `python manage.py check`, and applies migrations.
+- Frontend job: installs React dependencies and runs the production build with `CI=false` to avoid treating warnings as fatal Create React App failures.
+- Docker image job: rebuilds the React frontend first, then builds the Django Docker image from `server/`.
+
+The workflow does not push images, deploy to Kubernetes, or require IBM Cloud credentials.
 
 ## Submission Artifact Notes
 
-For this bootstrap milestone, suitable artifacts include screenshots of the home page, About Us page, Contact Us page, and successful Django validation commands. Do not claim dealer search, reviews, registration, or deployment functionality until those features are implemented in later steps.
+The `submission/` folder contains capstone evidence such as screenshots, API output captures, CI evidence, deployment URL notes, and grader-facing artifacts. Keep these files aligned with the final state of the project before submission.
 
-## Future Portfolio Polish
+Useful evidence includes:
 
-After the graded functionality is complete, this project can be polished with clearer empty states, responsive dealer/review layouts, production-oriented environment settings, richer validation, and a short architecture diagram that explains the Django, React, and backend service boundaries.
+- Landing page, About, Contact, Login, Register, Dealers, Dealer detail, and Post Review screenshots.
+- Django admin login/logout and CarMake/CarModel admin screenshots.
+- Dealer API, dealer-by-state API, dealer-by-id API, dealer reviews API, login, logout, and add-review evidence.
+- Sentiment analyzer evidence.
+- GitHub Actions CI screenshot.
+- Deployment URL note.
+
+If `submission/deploymentURL` still contains a localhost URL, treat it as local deployment evidence rather than a public cloud deployment claim.
+
+## Portfolio Polish Note
+
+The project is complete enough to demonstrate the capstone architecture and user flows. Future portfolio improvements could include a short architecture diagram, more robust form validation, pagination for large dealer/review lists, production environment hardening, and polished public deployment documentation once a real cloud URL is available.
