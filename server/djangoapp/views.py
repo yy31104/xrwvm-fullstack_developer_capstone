@@ -2,7 +2,7 @@
 
 # from django.shortcuts import render
 # from django.http import HttpResponseRedirect, HttpResponse
-# from django.contrib.auth.models import User
+from django.contrib.auth.models import User
 # from django.shortcuts import get_object_or_404, render, redirect
 # from django.contrib.auth import logout
 # from django.contrib import messages
@@ -22,21 +22,54 @@ logger = logging.getLogger(__name__)
 
 # Create your views here.
 
+
+def _json_body(request):
+    try:
+        data = json.loads(request.body.decode('utf-8') or '{}')
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    return data
+
+
 # Create a `login_request` view to handle sign in request
 @csrf_exempt
 def login_user(request):
-    # Get username and password from request.POST dictionary
-    data = json.loads(request.body)
-    username = data['userName']
-    password = data['password']
+    if request.method != 'POST':
+        return JsonResponse({
+            "status": "Failed",
+            "message": "POST request required"
+        }, status=405)
+
+    data = _json_body(request)
+    if data is None:
+        return JsonResponse({
+            "status": "Failed",
+            "message": "Invalid JSON body"
+        }, status=400)
+
+    username = data.get('userName', '').strip()
+    password = data.get('password', '')
+    if not username or not password:
+        return JsonResponse({
+            "userName": username,
+            "status": "Failed",
+            "message": "Username and password are required"
+        }, status=400)
+
     # Try to check if provide credential can be authenticated
     user = authenticate(username=username, password=password)
-    data = {"userName": username}
-    if user is not None:
-        # If user is valid, call login method to login current user
-        login(request, user)
-        data = {"userName": username, "status": "Authenticated"}
-    return JsonResponse(data)
+    if user is None:
+        return JsonResponse({
+            "userName": username,
+            "status": "Failed",
+            "message": "Invalid username or password"
+        }, status=401)
+
+    # If user is valid, call login method to login current user
+    login(request, user)
+    return JsonResponse({"userName": username, "status": "Authenticated"})
 
 # Create a `logout_request` view to handle sign out request
 @csrf_exempt
@@ -45,9 +78,60 @@ def logout_request(request):
     return JsonResponse({"userName": ""})
 
 # Create a `registration` view to handle sign up request
-# @csrf_exempt
-# def registration(request):
-# ...
+@csrf_exempt
+def registration(request):
+    if request.method != 'POST':
+        return JsonResponse({
+            "status": "Failed",
+            "message": "POST request required"
+        }, status=405)
+
+    data = _json_body(request)
+    if data is None:
+        return JsonResponse({
+            "status": "Failed",
+            "message": "Invalid JSON body"
+        }, status=400)
+
+    username = data.get('userName', '').strip()
+    password = data.get('password', '')
+    first_name = data.get('firstName', '').strip()
+    last_name = data.get('lastName', '').strip()
+    email = data.get('email', '').strip()
+
+    required_fields = {
+        "userName": username,
+        "password": password,
+        "firstName": first_name,
+        "lastName": last_name,
+        "email": email,
+    }
+    missing_fields = [
+        field for field, value in required_fields.items() if not value
+    ]
+    if missing_fields:
+        return JsonResponse({
+            "userName": username,
+            "status": "Failed",
+            "message": "Missing required fields: " + ", ".join(missing_fields)
+        }, status=400)
+
+    if User.objects.filter(username=username).exists():
+        return JsonResponse({
+            "userName": username,
+            "status": "Failed",
+            "message": "Username already exists"
+        }, status=409)
+
+    user = User.objects.create_user(
+        username=username,
+        password=password,
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+    )
+    login(request, user)
+    return JsonResponse({"userName": username, "status": "Authenticated"})
 
 # # Update the `get_dealerships` view to render the index page with
 # a list of dealerships
